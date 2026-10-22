@@ -25,7 +25,7 @@ OpenAI-compatible 路径发送 `max_completion_tokens=400`，它包含可见输�
 
 配置 `RESEARCH_LLM_BASE_URL`、`RESEARCH_LLM_MODEL`、`RESEARCH_LLM_KIND=openai|gateway`、
 可选 `RESEARCH_LLM_API_KEY`。Gateway 也可通过 `RESEARCH_GATEWAY_URL` 和
-`RESEARCH_GATEWAY_API_KEY` 指定。辅助模型分析只有在正费用预算、完整模型配置和明确价格
+`RESEARCH_GATEWAY_API_KEY` 指定。OFFLINE 强制禁止外部 RAG/LLM；LIVE 辅助模型分析只有在正费用预算、完整模型配置和明确价格
 同时存在时才允许请求；未配置时保留本地抽取式报告。
 
 `generate(messages, max_cost_usd=..., max_completion_tokens=400)` 必须传入本次费用额度。
@@ -77,6 +77,16 @@ ResearchOS 当前使用自身抽取式 Writer 和 EvidenceChecker，没有强行
 指定授权 workspace，只允许所需的读工具，使用固定可执行程序和受控环境，不把任意网页
 指令转为 shell 命令。未声称存在通用 Workspace HTTP 入口，也没有复制其整个仓库。
 
+### ResearchOS 自身的只读 MCP
+
+本仓库另提供 `researchos.mcp_server`，通过 stdio 读取已持久化的研究记录。安装可选
+`mcp` extra 后，使用 `.venv/bin/python -m researchos.mcp_server` 由 MCP client 启动。
+服务基于官方 MCP Python SDK 的 `MCPServer`，工具为 `get_run`、`list_sources`、
+`search_memory`；只读现有记录，不创建研究、不发起新外部请求、不暴露任意文件操作。
+默认数据库来自 `RESEARCH_DATA_DIR`，与 HTTP 服务使用同一配置。
+该 server 及其工具与 Workspace 兄弟项目独立，不能把它的只读能力理解为已启动兄弟文件服务。
+协议参考：[MCP Python SDK](https://py.sdk.modelcontextprotocol.io/run/)。
+
 ## 项目 5：AgentOps Evaluation Platform
 
 `AgentOpsExporter.from_events(run, events)` 导出项目 5 的 `ResearchAgentAdapter` 可接受响应：
@@ -93,7 +103,10 @@ token/cost 为 null。最多 1,000 spans；answer 超过 20,000 字符时明确�
 
 项目 5 的适配器对操作者指定的 `RESEARCH_AGENT_ENDPOINT` 发 POST，请求包含
 `task`、`category=retrieval`、`fixtures`、`seed`、`config={planner,tool_descriptions,tool_retries}`。
-HTTP 服务必须自行落实或拒绝不支持的执行配置；仅导出 Trace 不等于实现此请求服务。
+本仓库 `/api/agentops/research` 实现此离线兼容入口，支持 `planner=true`、
+`tool_descriptions=improved`、`tool_retries=0|1`；最后一项对应 1–2 轮有限补检。
+外部 fixtures、关闭 planner、basic 描述或超出上限的重试配置会明确返回 422；
+不把未实现的配置消融悄悄当作生效。seed 被接收，内置固定流程没有随机模型。
 项目 5 接收后会校验整棵树，并重新映射 run/span IDs，不信任外部时间戳。
 
 项目 5 当前没有公开 HTTP Trace 导入端点；其 API 提供 `/runs`、`/metrics`、`/compare`
@@ -105,6 +118,11 @@ ResearchOS 的兼容响应可由平台现有远程适配器消费，但不直接
 
 `tests/test_integrations.py` 使用 `httpx.MockTransport` 验证两种模型协议、显式 Key/无 Key、
 缺失 usage、费用预检在 I/O 前拒绝、超时、字节上限、安全错误、RAG 来源边界和 AgentOps
-Trace tree/字段限制。测试没有调用真实模型、付费 API 或真实 Gateway/RAG 服务。
+Trace tree/字段限制。30 项适配器测试全部通过；没有调用真实模型或付费 API。
 通过 MockTransport 说明协议和失败边界可执行，不代表兄弟服务实际部署连通。
-实际跨仓库 schema 检查如另外执行，应单独记录命令与结果，不与真实模型请求混为一谈。
+
+另已实际执行三项本地跨仓库协议检查：在显式 lifespan 下通过 `httpx.ASGITransport`
+调用兄弟 Gateway 的真实 FastAPI `/v1/chat`，后端使用 Mock provider；通过相同方式调用
+兄弟 RAG 的真实 `/query`，从临时 SQLite 合成语料得到一个类型正确的检索 chunk；直接
+调用兄弟 AgentOps 的实际 `_remote_response` validator，成功接受五个 spans 的导出。
+这些检查没有修改兄弟源码、启动网络服务、下载模型或请求真实模型；与真实网络集成分别说明。

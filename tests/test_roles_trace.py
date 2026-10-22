@@ -82,9 +82,23 @@ async def test_optional_llm_analysis_cannot_create_trusted_citations(tmp_path, m
         return LLMResult(text="Unverified model claim [999] <script>bad</script>", model="test")
 
     monkeypatch.setattr(GatewayClient, "generate", generate)
+
+    class MockNetworkProvider:
+        async def search(self, task, limit):
+            sources = await FixtureSourceProvider().search(task, limit)
+            for source in sources:
+                source.url = "https://example.org/" + source.id
+                source.category = "web"
+                source.provenance = "network"
+            return sources
+
     settings = Settings(llm_base_url="http://127.0.0.1:9999/v1", llm_model="test")
-    run = await Engine(Store(tmp_path / "r.db"), settings=settings).execute(
-        Run(request=ResearchRequest(topic="Agent Memory", budget=Budget(max_cost_usd=0.01)))
+    run = await Engine(Store(tmp_path / "r.db"), MockNetworkProvider(), settings=settings).execute(
+        Run(
+            request=ResearchRequest(
+                topic="Agent Memory", mode="live", budget=Budget(max_cost_usd=0.01)
+            )
+        )
     )
     assert run.status == "completed" and run.checks.passed
     assert len(run.claims) == 6
@@ -110,4 +124,4 @@ async def test_configured_llm_zero_budget_never_calls_model(tmp_path, monkeypatc
         Run(request=ResearchRequest(topic="Agent Memory"))
     )
     assert run.status == "completed" and not called
-    assert "budget" in run.config["llm_fallback"]
+    assert "offline" in run.config["llm_fallback"]

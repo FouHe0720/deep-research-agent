@@ -10,6 +10,9 @@ class Settings(BaseSettings):
     max_jobs: int = Field(2, ge=1, le=4)
     max_queue: int = Field(20, ge=1, le=100)
     allow_live: bool = False
+    allowed_hosts: list[str] = Field(
+        default_factory=lambda: ["localhost", "127.0.0.1", "::1", "testserver"]
+    )
     api_key: SecretStr | None = None
     web_api_key: SecretStr | None = None
     github_token: SecretStr | None = None

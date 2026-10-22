@@ -52,6 +52,9 @@ class Synthesizer:
         passages = [{"id": s.id, "title": s.title, "excerpt": s.excerpt} for s in run.sources]
         local_hits = store.search(run.id, run.request.topic, limit=3)
         run.config["local_memory_hits"] = len(local_hits)
+        if run.request.mode == "offline":
+            run.config["llm_fallback"] = "offline mode disables external integrations"
+            return
         context = ""
         if settings.rag_url:
             from researchos.adapters.integrations import RAGAdapter

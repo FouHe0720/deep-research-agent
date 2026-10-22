@@ -16,6 +16,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest>=8,<10", "pytest-asyncio>=0.24,<2", "ruff>=0.12,<1", "respx>=0.22,<0.23"]
 browser = ["playwright>=1.50,<2"]
+mcp = ["mcp>=2.3,<3"]
 [project.scripts]
 researchos = "researchos.cli:main"
 [tool.hatch.build.targets.wheel]

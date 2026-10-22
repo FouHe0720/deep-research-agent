@@ -1,0 +1,250 @@
+{
+  "id": "fcf657c5cb91412f8f77c0f4795678ff",
+  "request": {
+    "topic": "Agent Memory 的工作记忆、情节记忆与语义记忆如何区分？",
+    "time_range": null,
+    "max_sources": 6,
+    "depth": "standard",
+    "budget": {
+      "max_seconds": 60.0,
+      "max_tool_calls": 12,
+      "max_rounds": 1,
+      "max_cost_usd": 0.0
+    },
+    "language": "zh",
+    "mode": "offline",
+    "providers": [
+      "github",
+      "arxiv"
+    ]
+  },
+  "status": "completed",
+  "created_at": "2026-10-22T11:30:10.764557+00:00",
+  "updated_at": "2026-10-22T11:30:10.927085+00:00",
+  "plan": {
+    "subtasks": [
+      {
+        "id": "q1",
+        "question": "Agent Memory 的工作记忆、情节记忆与语义记忆如何区分？: 基础定义与主要路线",
+        "keywords": [
+          "Agent Memory 的工作记忆、情节记忆与语义记忆如何区分？",
+          "definitions primary sources"
+        ],
+        "evidence_type": "definitions primary sources",
+        "status": "complete"
+      },
+      {
+        "id": "q2",
+        "question": "Agent Memory 的工作记忆、情节记忆与语义记忆如何区分？: 代表论文与公开实现",
+        "keywords": [
+          "Agent Memory 的工作记忆、情节记忆与语义记忆如何区分？",
+          "papers open source implementations"
+        ],
+        "evidence_type": "papers open source implementations",
+        "status": "complete"
+      },
+      {
+        "id": "q3",
+        "question": "Agent Memory 的工作记忆、情节记忆与语义记忆如何区分？: 优势、局限与未解决问题",
+        "keywords": [
+          "Agent Memory 的工作记忆、情节记忆与语义记忆如何区分？",
+          "limitations tradeoffs evidence"
+        ],
+        "evidence_type": "limitations tradeoffs evidence",
+        "status": "complete"
+      }
+    ],
+    "max_rounds": 1,
+    "strategy": "bounded deterministic planner"
+  },
+  "sources": [
+    {
+      "id": "memory-types",
+      "url": "fixture://researchos/memory-types",
+      "title": "教学材料：Agent Memory 的三种存储",
+      "authors": [],
+      "published_at": null,
+      "date_basis": null,
+      "fetched_at": "2026-10-22T11:30:10.814833+00:00",
+      "category": "fixture",
+      "excerpt": "Agent Memory 可按工作记忆、情节记忆和语义记忆组织。工作记忆保存当前任务状态，情节记忆保留交互过程，语义记忆保存可检索知识。这是本项目编写的教学简化，不是文献综述结论。",
+      "content_hash": "e8bea87f01e1901d3833f6b455e676f638890f80b87869a434391434fad553e4",
+      "doi": null,
+      "duplicate_of": null,
+      "subtask_ids": [
+        "q1"
+      ],
+      "provenance": "fixture"
+    },
+    {
+      "id": "memory-evidence",
+      "url": "fixture://researchos/memory-evidence",
+      "title": "教学材料：证据与时间",
+      "authors": [],
+      "published_at": null,
+      "date_basis": null,
+      "fetched_at": "2026-10-22T11:30:10.814854+00:00",
+      "category": "fixture",
+      "excerpt": "知识条目应保存来源地址、抓取时间和原文摘录。抓取时间不等于发表日期；缺少来源日期时应保留空值，不应根据抓取日期猜测论文年份。",
+      "content_hash": "203eef3f04c764d3f3cc64f55b64a648921c6e8078c6b13648fd062314486e16",
+      "doi": null,
+      "duplicate_of": null,
+      "subtask_ids": [
+        "q1"
+      ],
+      "provenance": "fixture"
+    },
+    {
+      "id": "memory-implementation",
+      "url": "fixture://researchos/memory-implementation",
+      "title": "教学材料：记忆的最小实现",
+      "authors": [],
+      "published_at": null,
+      "date_basis": null,
+      "fetched_at": "2026-10-22T11:30:10.847244+00:00",
+      "category": "fixture",
+      "excerpt": "一个最小可审计实现可用 SQLite 保存来源与摘录，用 FTS5 检索相关片段，再将片段标识传入写作步骤。向量索引是可选组件，不能替代来源和引用绑定。",
+      "content_hash": "9f51ee93ccfc32c47b50662e8b478c6d95cc612f816c848f28327264c4aee810",
+      "doi": null,
+      "duplicate_of": null,
+      "subtask_ids": [
+        "q2"
+      ],
+      "provenance": "fixture"
+    },
+    {
+      "id": "memory-reproduction",
+      "url": "fixture://researchos/memory-reproduction",
+      "title": "教学材料：可复现的研究流程",
+      "authors": [],
+      "published_at": null,
+      "date_basis": null,
+      "fetched_at": "2026-10-22T11:30:10.847270+00:00",
+      "category": "fixture",
+      "excerpt": "固定输入、固定资料与确定性写作可以验证研究流水线的程序行为。离线回归能够发现引用编号或导出故障，但不能代表真实互联网检索质量。",
+      "content_hash": "df375c32bb8f20490084a6f6eb3144fdda4be843ae8f524bf958284eefa0cd36",
+      "doi": null,
+      "duplicate_of": null,
+      "subtask_ids": [
+        "q2"
+      ],
+      "provenance": "fixture"
+    },
+    {
+      "id": "memory-tradeoffs",
+      "url": "fixture://researchos/memory-tradeoffs",
+      "title": "教学材料：检索与保留的取舍",
+      "authors": [],
+      "published_at": null,
+      "date_basis": null,
+      "fetched_at": "2026-10-22T11:30:10.880566+00:00",
+      "category": "fixture",
+      "excerpt": "长期保存可能增加隐私暴露和过期知识风险；只保存短期上下文可能丢失跨任务信息。需要显式保留策略、删除能力以及依据任务评估的检索指标。此材料没有比较任何真实产品的性能。",
+      "content_hash": "d70b2918f8f317579f9fd376dedcf00bc85ce0293722fc0c7bf405eba086ee23",
+      "doi": null,
+      "duplicate_of": null,
+      "subtask_ids": [
+        "q3"
+      ],
+      "provenance": "fixture"
+    },
+    {
+      "id": "memory-evaluation",
+      "url": "fixture://researchos/memory-evaluation",
+      "title": "教学材料：忠实度的边界",
+      "authors": [],
+      "published_at": null,
+      "date_basis": null,
+      "fetched_at": "2026-10-22T11:30:10.880586+00:00",
+      "category": "fixture",
+      "excerpt": "引用存在、摘录非空和编号一致可以用程序检查。主张是否由证据充分支持仍需语义判断和人工复核；自动检查通过并不意味着消除了所有幻觉。",
+      "content_hash": "b3c3bc526c7cfd1f76f5a1a29cc82a5460c69427691c8f10ec265eda504d6606",
+      "doi": null,
+      "duplicate_of": null,
+      "subtask_ids": [
+        "q3"
+      ],
+      "provenance": "fixture"
+    }
+  ],
+  "claims": [
+    {
+      "id": "7d55d657f5e5497db9b7469fece2c265",
+      "text": "Agent Memory 可按工作记忆、情节记忆和语义记忆组织。工作记忆保存当前任务状态，情节记忆保留交互过程，语义记忆保存可检索知识。这是本项目编写的教学简化，不是文献综述结论。",
+      "source_id": "memory-types",
+      "passage": "Agent Memory 可按工作记忆、情节记忆和语义记忆组织。工作记忆保存当前任务状态，情节记忆保留交互过程，语义记忆保存可检索知识。这是本项目编写的教学简化，不是文献综述结论。",
+      "citation_id": 1,
+      "subtask_id": "q1"
+    },
+    {
+      "id": "1a1b3cfa60174275a195009bceb82e2c",
+      "text": "知识条目应保存来源地址、抓取时间和原文摘录。抓取时间不等于发表日期；缺少来源日期时应保留空值，不应根据抓取日期猜测论文年份。",
+      "source_id": "memory-evidence",
+      "passage": "知识条目应保存来源地址、抓取时间和原文摘录。抓取时间不等于发表日期；缺少来源日期时应保留空值，不应根据抓取日期猜测论文年份。",
+      "citation_id": 2,
+      "subtask_id": "q1"
+    },
+    {
+      "id": "3979be2faf3542f294405165bc52bae9",
+      "text": "一个最小可审计实现可用 SQLite 保存来源与摘录，用 FTS5 检索相关片段，再将片段标识传入写作步骤。向量索引是可选组件，不能替代来源和引用绑定。",
+      "source_id": "memory-implementation",
+      "passage": "一个最小可审计实现可用 SQLite 保存来源与摘录，用 FTS5 检索相关片段，再将片段标识传入写作步骤。向量索引是可选组件，不能替代来源和引用绑定。",
+      "citation_id": 3,
+      "subtask_id": "q2"
+    },
+    {
+      "id": "b63f1cfe616e480aa34eac55c22ae6d8",
+      "text": "固定输入、固定资料与确定性写作可以验证研究流水线的程序行为。离线回归能够发现引用编号或导出故障，但不能代表真实互联网检索质量。",
+      "source_id": "memory-reproduction",
+      "passage": "固定输入、固定资料与确定性写作可以验证研究流水线的程序行为。离线回归能够发现引用编号或导出故障，但不能代表真实互联网检索质量。",
+      "citation_id": 4,
+      "subtask_id": "q2"
+    },
+    {
+      "id": "52647b6f164c49458c4fc82aac04d351",
+      "text": "长期保存可能增加隐私暴露和过期知识风险；只保存短期上下文可能丢失跨任务信息。需要显式保留策略、删除能力以及依据任务评估的检索指标。此材料没有比较任何真实产品的性能。",
+      "source_id": "memory-tradeoffs",
+      "passage": "长期保存可能增加隐私暴露和过期知识风险；只保存短期上下文可能丢失跨任务信息。需要显式保留策略、删除能力以及依据任务评估的检索指标。此材料没有比较任何真实产品的性能。",
+      "citation_id": 5,
+      "subtask_id": "q3"
+    },
+    {
+      "id": "53d01ab62c744a8995e154e705f43e4e",
+      "text": "引用存在、摘录非空和编号一致可以用程序检查。主张是否由证据充分支持仍需语义判断和人工复核；自动检查通过并不意味着消除了所有幻觉。",
+      "source_id": "memory-evaluation",
+      "passage": "引用存在、摘录非空和编号一致可以用程序检查。主张是否由证据充分支持仍需语义判断和人工复核；自动检查通过并不意味着消除了所有幻觉。",
+      "citation_id": 6,
+      "subtask_id": "q3"
+    }
+  ],
+  "report_md": "# Agent Memory 的工作记忆、情节记忆与语义记忆如何区分？\n\n\n\n**DEMO / OFFLINE：固定教学资料，非实时互联网调研。**\n\n\n\n## 问题定义\n\nAgent Memory 的工作记忆、情节记忆与语义记忆如何区分？\n\nTime range: unrestricted; undated items cannot pass a year filter.\n\n\n\n## 核心发现\n\n资料仅覆盖 Agent Memory 教学案例；其它主题只演示程序流程，结论待验证。\n\n- 来源摘录: Agent Memory 可按工作记忆、情节记忆和语义记忆组织。工作记忆保存当前任务状态，情节记忆保留交互过程，语义记忆保存可检索知识。这是本项目编写的教学简化，不是文献综述结论。 [1]\n\n- 来源摘录: 知识条目应保存来源地址、抓取时间和原文摘录。抓取时间不等于发表日期；缺少来源日期时应保留空值，不应根据抓取日期猜测论文年份。 [2]\n\n- 来源摘录: 一个最小可审计实现可用 SQLite 保存来源与摘录，用 FTS5 检索相关片段，再将片段标识传入写作步骤。向量索引是可选组件，不能替代来源和引用绑定。 [3]\n\n- 来源摘录: 固定输入、固定资料与确定性写作可以验证研究流水线的程序行为。离线回归能够发现引用编号或导出故障，但不能代表真实互联网检索质量。 [4]\n\n- 来源摘录: 长期保存可能增加隐私暴露和过期知识风险；只保存短期上下文可能丢失跨任务信息。需要显式保留策略、删除能力以及依据任务评估的检索指标。此材料没有比较任何真实产品的性能。 [5]\n\n- 来源摘录: 引用存在、摘录非空和编号一致可以用程序检查。主张是否由证据充分支持仍需语义判断和人工复核；自动检查通过并不意味着消除了所有幻觉。 [6]\n\n\n\n## 技术路线对比表\n\n| 证据条目 | 来源类型 | 可确定的范围 |\n| --- | --- | --- |\n| 教学材料：Agent Memory 的三种存储 [1] | fixture | 仅来源摘录 |\n| 教学材料：证据与时间 [2] | fixture | 仅来源摘录 |\n| 教学材料：记忆的最小实现 [3] | fixture | 仅来源摘录 |\n| 教学材料：可复现的研究流程 [4] | fixture | 仅来源摘录 |\n| 教学材料：检索与保留的取舍 [5] | fixture | 仅来源摘录 |\n| 教学材料：忠实度的边界 [6] | fixture | 仅来源摘录 |\n\n\n\n## 代表论文 / 项目\n\n固定教学材料没有真实论文，待联网验证。\n\n\n\n## 优势与限制\n\n可回查摘录和采集时间；不将链接有效等同于语义蕴含。\n\n本报告使用保守的抽取式写作，不做无证据的跨来源推断。\n\n\n\n## 开放问题\n\n证据是否充分支持主题、资料是否过期、是否存在反例，均需要人工复核。\n\n\n\n## 参考文献\n\n[1]: 教学材料：Agent Memory 的三种存储 — <fixture://researchos/memory-types> （采集 2026-10-22T11:30:10.814833+00:00；发表 未知）\n\n[2]: 教学材料：证据与时间 — <fixture://researchos/memory-evidence> （采集 2026-10-22T11:30:10.814854+00:00；发表 未知）\n\n[3]: 教学材料：记忆的最小实现 — <fixture://researchos/memory-implementation> （采集 2026-10-22T11:30:10.847244+00:00；发表 未知）\n\n[4]: 教学材料：可复现的研究流程 — <fixture://researchos/memory-reproduction> （采集 2026-10-22T11:30:10.847270+00:00；发表 未知）\n\n[5]: 教学材料：检索与保留的取舍 — <fixture://researchos/memory-tradeoffs> （采集 2026-10-22T11:30:10.880566+00:00；发表 未知）\n\n[6]: 教学材料：忠实度的边界 — <fixture://researchos/memory-evaluation> （采集 2026-10-22T11:30:10.880586+00:00；发表 未知）\n",
+  "checks": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Structure only; source reachability and semantic faithfulness are separate.",
+      "Fixture evidence is owned demo material, never live source validity."
+    ]
+  },
+  "reasons": [],
+  "config": {
+    "mode": "offline",
+    "writer": "extractive",
+    "budget": {
+      "max_seconds": 60,
+      "max_tool_calls": 12,
+      "max_rounds": 1,
+      "max_cost_usd": 0
+    },
+    "tool_calls": 3,
+    "rounds": 1,
+    "planner": "bounded deterministic planner",
+    "local_memory_hits": 1,
+    "llm_fallback": "offline mode disables external integrations",
+    "latency_ms": 162.493
+  },
+  "usage": {
+    "tokens": null,
+    "cost_usd": null
+  }
+}

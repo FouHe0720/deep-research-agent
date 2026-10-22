@@ -2,27 +2,59 @@ import argparse
 import asyncio
 from pathlib import Path
 
-from researchos.domain.models import ResearchRequest, Run
+from researchos.adapters.integrations import AgentOpsExporter
+from researchos.domain.models import Budget, ResearchRequest, Run
+from researchos.infra.config import Settings
 from researchos.infra.store import Store
 from researchos.services.engine import Engine
 from researchos.services.writer import render_html
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="ResearchOS reproducible offline demo")
+    parser = argparse.ArgumentParser(description="ResearchOS bounded research, offline by default")
     parser.add_argument("topic", nargs="?", default="Agent Memory 有哪些主要路线和优缺点")
     parser.add_argument("--output", default="artifacts/demo")
+    parser.add_argument("--mode", choices=["offline", "live"], default="offline")
+    parser.add_argument(
+        "--providers", nargs="+", choices=["github", "arxiv", "web"], default=["github", "arxiv"]
+    )
+    parser.add_argument("--max-sources", type=int, default=6)
+    parser.add_argument("--max-seconds", type=float, default=60)
+    parser.add_argument("--max-cost-usd", type=float, default=0)
+    parser.add_argument("--language", choices=["zh", "en"], default="zh")
+    parser.add_argument("--time-range", default=None)
     args = parser.parse_args()
     out = Path(args.output)
     out.mkdir(parents=True, exist_ok=True)
-    run = asyncio.run(
-        Engine(Store(out / "research.db")).execute(Run(request=ResearchRequest(topic=args.topic)))
+    store = Store(out / "research.db")
+    request = ResearchRequest(
+        topic=args.topic,
+        mode=args.mode,
+        providers=args.providers,
+        max_sources=args.max_sources,
+        language=args.language,
+        time_range=args.time_range,
+        budget=Budget(max_seconds=args.max_seconds, max_cost_usd=args.max_cost_usd),
     )
+    run = asyncio.run(Engine(store, settings=Settings()).execute(Run(request=request)))
     (out / "report.md").write_text(run.report_md)
     (out / "report.html").write_text(render_html(run.report_md))
     (out / "run.json").write_text(run.model_dump_json(indent=2))
-    print(f"DEMO/OFFLINE run={run.id} status={run.status} sources={len(run.sources)}")
+    import json
+
+    (out / "trace.json").write_text(json.dumps(store.events(run.id), ensure_ascii=False, indent=2))
+    (out / "agentops.json").write_text(
+        json.dumps(
+            AgentOpsExporter.from_events(run, store.events(run.id)), ensure_ascii=False, indent=2
+        )
+    )
+    label = "DEMO/OFFLINE" if args.mode == "offline" else "LIVE"
+    print(f"{label} run={run.id} status={run.status} sources={len(run.sources)}")
     print(f"Citation checks: {run.checks.passed}; artifacts: {out}")
+    for reason in run.reasons:
+        print(f"  - {reason}")
+    if run.status == "failed":
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":

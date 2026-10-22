@@ -1,0 +1,59 @@
+{
+  "answer": "# agent memory\n\n\n\n**LIVE：仅以下已采集证据支持的有限结果。**\n\n\n\n## 问题定义\n\nagent memory\n\nTime range: unrestricted; undated items cannot pass a year filter.\n\n\n\n## 核心发现\n\n- 来源摘录: TencentDB Agent Memory is a team-level memory hub for AI Agents — turning conversations, docs, and code into four reusable memory assets (Chat Memory, Skill, LLM-Wiki, Code-Graph) that are governed, shared, and equipped across agents and frameworks. [1]\n\n- 来源摘录: Hindsight: Agent Memory That Learns [2]\n\n\n\n## 技术路线对比表\n\n| 证据条目 | 来源类型 | 可确定的范围 |\n| --- | --- | --- |\n| TencentCloud/TencentDB-Agent-Memory [1] | github | 仅来源摘录 |\n| vectorize-io/hindsight [2] | github | 仅来源摘录 |\n\n\n\n## 代表论文 / 项目\n\nTencentCloud/TencentDB-Agent-Memory\n\nvectorize-io/hindsight\n\n\n\n## 优势与限制\n\n可回查摘录和采集时间；不将链接有效等同于语义蕴含。\n\n本报告使用保守的抽取式写作，不做无证据的跨来源推断。\n\n\n\n## 开放问题\n\n证据是否充分支持主题、资料是否过期、是否存在反例，均需要人工复核。\n\n\n\n## 参考文献\n\n[1]: TencentCloud/TencentDB-Agent-Memory — <https://github.com/TencentCloud/TencentDB-Agent-Memory> （采集 2026-10-22T11:20:49.015556+00:00；发表 未知）\n\n[2]: vectorize-io/hindsight — <https://github.com/vectorize-io/hindsight> （采集 2026-10-22T11:20:49.015663+00:00；发表 未知）\n",
+  "trace": [
+    {
+      "span_id": "research-root",
+      "event_type": "agent",
+      "status": "ok",
+      "duration_ms": 1072.943
+    },
+    {
+      "span_id": "research-event-7",
+      "parent_span_id": "research-root",
+      "event_type": "tool_call",
+      "status": "ok",
+      "tool_name": "source_search"
+    },
+    {
+      "span_id": "research-event-8",
+      "parent_span_id": "research-event-7",
+      "event_type": "tool_result",
+      "status": "ok",
+      "tool_name": "source_search"
+    },
+    {
+      "span_id": "research-event-12",
+      "parent_span_id": "research-root",
+      "event_type": "tool_call",
+      "status": "ok",
+      "tool_name": "source_search"
+    },
+    {
+      "span_id": "research-event-15",
+      "parent_span_id": "research-event-12",
+      "event_type": "tool_result",
+      "status": "ok",
+      "tool_name": "source_search"
+    },
+    {
+      "span_id": "research-event-19",
+      "parent_span_id": "research-root",
+      "event_type": "tool_call",
+      "status": "ok",
+      "tool_name": "source_search"
+    },
+    {
+      "span_id": "research-event-22",
+      "parent_span_id": "research-event-19",
+      "event_type": "tool_result",
+      "status": "ok",
+      "tool_name": "source_search"
+    },
+    {
+      "span_id": "research-final",
+      "parent_span_id": "research-root",
+      "event_type": "final",
+      "status": "ok"
+    }
+  ]
+}

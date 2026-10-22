@@ -12,3 +12,6 @@ Only this independent project directory is modified. Default mode is fixture/off
 
 ## Acceptance
 Offline install/demo/test/lint must actually pass. Each stage has a commit. Metrics come from generated runs, fixture results never imply internet research quality. Live tests report exact providers and failures. Docker and CI status are recorded only after execution. No credentials, runtime databases or personal paths are committed. Publish only under verified FouHe0720/deep-research-agent, without force pushes.
+
+## Executed milestones
+V0: 3 passing tests; V1: 58; V2: 103; V3 local acceptance: 120, plus actual browser, Docker and live GitHub/arXiv checks. Stage commits retain separate histories. Public release and remote CI results are recorded in docs/VALIDATION.md after execution.

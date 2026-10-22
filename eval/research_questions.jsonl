@@ -1,0 +1,30 @@
+{"id":"memory-01","category":"agent_memory","topic":"Agent Memory 的工作记忆、情节记忆与语义记忆如何区分？","reviewed":false,"annotations":[{"id":"working","any_of":["工作记忆","working memory"]},{"id":"episodic","any_of":["情节记忆","episodic memory"]},{"id":"semantic","any_of":["语义记忆","semantic memory"]}]}
+{"id":"memory-02","category":"agent_memory","topic":"如何使用 SQLite 与 FTS5 实现可审计的最小 Agent Memory？","reviewed":false,"annotations":[{"id":"sqlite","any_of":["SQLite"]},{"id":"retrieval","any_of":["FTS5"]},{"id":"binding","any_of":["来源和引用绑定"]}]}
+{"id":"memory-03","category":"agent_memory","topic":"Agent Memory 长期保留与短期上下文各有哪些风险？","reviewed":false,"annotations":[{"id":"privacy","any_of":["隐私暴露"]},{"id":"staleness","any_of":["过期知识"]},{"id":"retention","any_of":["保留策略"]}]}
+{"id":"rag-01","category":"rag","topic":"RAG 中关键词检索与向量检索的适用条件有哪些差异？","reviewed":false}
+{"id":"rag-02","category":"rag","topic":"如何设计 RAG 语料分块、文档版本与来源追溯？","reviewed":false}
+{"id":"rag-03","category":"rag","topic":"RAG 检索评估中的 Recall、MRR 与人工相关性标注如何配合？","reviewed":false}
+{"id":"agents-01","category":"agent_architecture","topic":"单 Agent 的有限状态循环与多 Agent 协作有哪些工程取舍？","reviewed":false}
+{"id":"agents-02","category":"agent_architecture","topic":"Agent 工具调用如何实现权限隔离与取消传播？","reviewed":false}
+{"id":"agents-03","category":"agent_architecture","topic":"如何给自主任务设置时间、调用次数与费用预算？","reviewed":false}
+{"id":"database-01","category":"databases","topic":"SQLite WAL 在单进程服务中有哪些并发特征与限制？","reviewed":false}
+{"id":"database-02","category":"databases","topic":"PostgreSQL 与 SQLite 分别适合哪些小型应用场景？","reviewed":false}
+{"id":"database-03","category":"databases","topic":"如何验证全文检索索引与原始文档之间的一致性？","reviewed":false}
+{"id":"observe-01","category":"observability","topic":"分布式 Trace 中 Span、Event 与 Metric 分别解决什么问题？","reviewed":false}
+{"id":"observe-02","category":"observability","topic":"如何记录工具调用的失败率和尾部延迟？","reviewed":false}
+{"id":"observe-03","category":"observability","topic":"可观测性数据如何脱敏并设置保留期限？","reviewed":false}
+{"id":"security-01","category":"security","topic":"网页抓取服务应如何防御 SSRF 与 DNS rebinding？","reviewed":false}
+{"id":"security-02","category":"security","topic":"提示注入材料与工具执行权限应该如何隔离？","reviewed":false}
+{"id":"security-03","category":"security","topic":"API Key 管理、速率限制与公开演示服务有哪些常见风险？","reviewed":false}
+{"id":"energy-01","category":"energy","topic":"太阳能与风能发电的间歇性如何影响储能方案选择？","reviewed":false}
+{"id":"energy-02","category":"energy","topic":"电池储能与抽水蓄能的工程比较应包含哪些指标？","reviewed":false}
+{"id":"energy-03","category":"energy","topic":"如何判断能源技术比较报告的系统边界是否一致？","reviewed":false}
+{"id":"education-01","category":"education","topic":"间隔重复与检索练习的实验研究应如何比较？","reviewed":false}
+{"id":"education-02","category":"education","topic":"开放教育资源如何管理许可、来源与版本？","reviewed":false}
+{"id":"education-03","category":"education","topic":"学习工具评估如何区分参与度与实际学习效果？","reviewed":false}
+{"id":"tools-01","category":"developer_tools","topic":"Python 命令行工具如何组织配置、日志与退出码？","reviewed":false}
+{"id":"tools-02","category":"developer_tools","topic":"Docker 镜像可复现性与依赖版本锁定应如何验证？","reviewed":false}
+{"id":"tools-03","category":"developer_tools","topic":"异步后台任务在取消和服务重启时应采用哪些恢复策略？","reviewed":false}
+{"id":"research-01","category":"research_methods","topic":"系统性文献检索如何记录筛选标准和排除原因？","reviewed":false}
+{"id":"research-02","category":"research_methods","topic":"研究报告如何区分原始证据、作者推断与未知结论？","reviewed":false}
+{"id":"research-03","category":"research_methods","topic":"如何设计可重复但不夸大结论的离线回归评测？","reviewed":false}

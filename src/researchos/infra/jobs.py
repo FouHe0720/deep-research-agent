@@ -42,6 +42,10 @@ class JobManager:
         self._cancel_reasons: dict[str, str] = {}
         self._closed = False
 
+    def is_pending(self, run_id: str) -> bool:
+        task = self._tasks.get(run_id)
+        return task is not None and not task.done()
+
     @property
     def active_count(self) -> int:
         return len(self._running)
