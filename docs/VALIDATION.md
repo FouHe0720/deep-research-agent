@@ -10,6 +10,7 @@ Docker 和远程 CI 分开。日期使用执行会话的用户时区，验证环
 | V0 | 3 tests passed；离线 Demo 生成 6 个 Fixture 来源和报告 | 最小引用闭环 |
 | V1 | 58 tests passed；Ruff lint/format 通过 | 来源适配、安全网络、去重、边界与恢复 |
 | V2 | 103 tests passed；Ruff lint/format 通过 | 有限角色循环、事件/Trace、可选集成 |
+| V3 | 120 tests passed；Web / Docker / MCP / 实际联网通过 | 可运行产品、评测、文档与发布 |
 
 V1 实际无凭证 GitHub 搜索通过 SafeHTTP 返回 HTTP 200，得到 1 个公开仓库结果；
 只发生 1 次外发请求。此检查没有验证 arXiv、Brave、LLM 的真实可用性。
@@ -31,9 +32,9 @@ V1 实际无凭证 GitHub 搜索通过 SafeHTTP 返回 HTTP 200，得到 1 个�
 | 浏览器交互与截图 | 实际 Chromium + Playwright | 6 来源、31 事件、引用弹窗、MD/HTML 下载、Trace、FTS、历史重载；桌面 1440 / 手机 390 无溢出，0 JS errors；截图已保存 |
 | 可选 MCP | 官方 SDK 2.3.0，内存协议 + 实际 stdio 子进程 | 2 项测试通过，工具发现/读取/参数校验通过；不创建研究任务 |
 | Docker build / health | 实际 daemon 构建、只读根 FS + volume 运行 | 构建成功，UID 10001:10001，healthy，HTTP 202 到 completed、6 来源及 HTML 成功；重启后仍可读取报告 |
-| GitHub Actions | 远程 workflow 状态 | 待推送后确认 |
-| 隐私 / 暂存区审查 | tracked/staged 文件扫描 | 待发布前执行 |
-| GitHub public 发布 | 核对账户、普通 push、可见性 | 待发布后确认 |
+| GitHub Actions | [run 39771277422](https://github.com/FouHe0720/deep-research-agent/actions/runs/39771277422) | completed / success；Python 3.11：120 passed in 7.07s；Python 3.12：120 passed in 8.35s；Docker job success |
+| 隐私 / 暂存区审查 | `scripts/check_public.py` + staged diff | 83 文件通过；无密钥、机器绝对路径、数据库、模型/下载缓存或私有文件；提交使用 GitHub no-reply |
+| GitHub public 发布 | 核对账户、普通 push、可见性 | 已确认 [FouHe0720/deep-research-agent](https://github.com/FouHe0720/deep-research-agent) 为 PUBLIC，main 正常推送，无强推 |
 
 ## 模型和兄弟服务
 
@@ -60,3 +61,5 @@ Latency 是本次程序观测，Tool Success 必须报告成功/总调用分母�
 后续新增验证应同时保存命令、配置摘要和对应产物，避免截图与 Run/指标不一致。
 
 浏览器系统库与 Noto CJK 字体仅在忽略的 `.runtime/` 中解包使用，没有 sudo、系统安装或仓库字体包。Git 作者使用已核验账户的 GitHub no-reply 邮箱。
+
+首个完整公开源代码版本：`a20c851ed6dc76ab9ad772835c417b70bd039f35`。后续文档提交不改变该次测试的数据和代码范围。

@@ -88,7 +88,7 @@ flowchart TD
     D -->|optional POST /v1/chat| G[1 LLM Gateway]
     D -. extraction boundary documented .-> W[2 Structured LLM Workflow]
     D -->|optional POST /query candidates| R[3 RAG Knowledge Engine]
-    D -. authorized read-only stdio tools .-> M[4 Workspace Agent MCP]
+    D -. documented only, not connected .-> M[4 Workspace Agent MCP]
     D -->|answer + sanitized spans export| E[5 AgentOps Eval]
 ```
 

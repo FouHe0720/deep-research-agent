@@ -51,6 +51,16 @@ make eval
 curl --fail-with-body -sS http://127.0.0.1:8000/health
 ```
 
+实际验证：`make test` **120 passed**，Ruff lint/format 通过；GitHub Actions 的 Python
+3.11、3.12 各 **120 passed**，容器构建与健康检查通过。[本次 CI 日志](https://github.com/FouHe0720/deep-research-agent/actions/runs/39771277422)。
+
+典型 CLI 输出（run_id 每次生成）：
+
+```text
+DEMO/OFFLINE run=<run_id> status=completed sources=6
+Citation checks: True; artifacts: artifacts/demo
+```
+
 完整 API、SSE、取消、导出和联网演示见 [DEMO](docs/DEMO.md)；实际执行结果集中记录在
 [VALIDATION](docs/VALIDATION.md)，不把协议 Mock 测试写成真实模型验证。
 
@@ -95,6 +105,15 @@ usage 缺失保留 null，费用预检估算与服务报告的实际 tokens 分�
 | RAG Knowledge Engine | 可选 `/query`，只取候选 chunks，标记检索上下文而非新网络来源 |
 | Workspace Agent | 已审计其 stdio 文件工具；本项目 MCP 只读研究记录，未启动兄弟文件服务 |
 | AgentOps Evaluation | 导出其 Research HTTP adapter 可校验的 answer + spans；不写入兄弟数据库 |
+
+```mermaid
+flowchart LR
+    D[ResearchOS] -->|optional /v1/chat| G[1 LLM Gateway]
+    D -. documented only .-> S[2 Structured Workflow]
+    D -->|optional /query context| R[3 RAG Engine]
+    D -. documented only, not connected .-> W[4 Workspace MCP]
+    D -->|answer + trace export / compatibility API| E[5 AgentOps]
+```
 
 接口及实际本地跨仓库验证见 [INTEGRATION](docs/INTEGRATION.md)。
 
