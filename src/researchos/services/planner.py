@@ -15,7 +15,7 @@ class Planner:
             subtasks=[
                 Subtask(
                     id=f"q{i}",
-                    question=f"{request.topic}：{label}",
+                    question=f"{request.topic}: {keywords if request.language == 'en' else label}",
                     keywords=[request.topic, keywords],
                     evidence_type=keywords,
                 )

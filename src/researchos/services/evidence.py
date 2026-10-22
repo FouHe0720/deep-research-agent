@@ -50,7 +50,7 @@ class EvidenceChecker:
                 errors.append(f"reference content mismatch: {c.citation_id}")
         if sorted(ids) != list(range(1, len(ids) + 1)):
             errors.append("citation IDs must be unique and contiguous")
-        body = run.report_md.split("## 参考文献")[0]
+        body = re.split(r"## (?:参考文献|References)", run.report_md)[0]
         cited = {int(n) for n in re.findall(r"(?<!\\)\[(\d+)\]", body)}
         if cited != set(ids):
             errors.append("orphan or missing inline citations")

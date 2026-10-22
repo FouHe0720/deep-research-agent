@@ -20,21 +20,38 @@ def reference_line(citation_id: int, source: SourceRecord) -> str:
 class Writer:
     def write(self, run: Run) -> str:
         run.claims = []
+        english = run.request.language == "en"
+
+        def tr(zh: str, en: str) -> str:
+            return en if english else zh
+
         lines = [
             f"# {safe_text(run.request.topic)}",
             "",
-            "**DEMO / OFFLINE：固定教学资料，非实时互联网调研。**"
+            tr(
+                "**DEMO / OFFLINE：固定教学资料，非实时互联网调研。**",
+                "**DEMO / OFFLINE: fixed teaching notes, not internet research.**",
+            )
             if run.request.mode == "offline"
-            else "**LIVE：仅以下已采集证据支持的有限结果。**",
+            else tr(
+                "**LIVE：仅以下已采集证据支持的有限结果。**",
+                "**LIVE: limited to the evidence actually collected below.**",
+            ),
             "",
-            "## 问题定义",
+            tr("## 问题定义", "## Problem definition"),
             safe_text(run.request.topic),
-            f"范围：{run.request.time_range or '未限制'}；无来源日期的资料不视为范围内证据。",
+            f"Time range: {run.request.time_range or 'unrestricted'}; "
+            "undated items cannot pass a year filter.",
             "",
-            "## 核心发现",
+            tr("## 核心发现", "## Findings"),
         ]
         if run.request.mode == "offline":
-            lines += ["资料仅覆盖 Agent Memory 教学案例；其它主题只演示程序流程，结论待验证。"]
+            lines += [
+                tr(
+                    "资料仅覆盖 Agent Memory 教学案例；其它主题只演示程序流程，结论待验证。",
+                    "Agent Memory notes only; other topics lack relevant evidence.",
+                )
+            ]
         for s in run.sources:
             cid = len(run.claims) + 1
             claim = Claim(
@@ -45,33 +62,60 @@ class Writer:
                 subtask_id=s.subtask_ids[0],
             )
             run.claims.append(claim)
-            lines += [f"- 来源摘录：{safe_text(claim.text)} [{cid}]"]
+            lines += [f"- {tr('来源摘录', 'Original excerpt')}: {safe_text(claim.text)} [{cid}]"]
         lines += [
             "",
-            "## 技术路线对比表",
-            "| 证据条目 | 来源类型 | 可确定的范围 |",
+            tr("## 技术路线对比表", "## Evidence comparison"),
+            tr("| 证据条目 | 来源类型 | 可确定的范围 |", "| Evidence | Type | Scope |"),
             "| --- | --- | --- |",
         ]
         for c in run.claims:
             s = next(s for s in run.sources if s.id == c.source_id)
-            lines += [f"| {safe_text(s.title)} [{c.citation_id}] | {s.category} | 仅来源摘录 |"]
-        lines += ["", "## 代表论文 / 项目"]
+            lines += [
+                f"| {safe_text(s.title)} [{c.citation_id}] | {s.category} | "
+                f"{tr('仅来源摘录', 'excerpt only')} |"
+            ]
+        lines += ["", tr("## 代表论文 / 项目", "## Papers and projects")]
         representatives = [s for s in run.sources if s.category in {"paper", "github"}]
         lines += [safe_text(s.title) for s in representatives] or [
-            "固定教学材料没有真实论文，待联网验证。"
+            tr(
+                "固定教学材料没有真实论文，待联网验证。",
+                "No representative paper/project was collected; further verification is needed.",
+            )
         ]
         lines += [
             "",
-            "## 优势与限制",
-            "可回查摘录和采集时间；不将链接有效等同于语义蕴含。",
-            "本报告使用保守的抽取式写作，不做无证据的跨来源推断。",
+            tr("## 优势与限制", "## Strengths and limitations"),
+            tr(
+                "可回查摘录和采集时间；不将链接有效等同于语义蕴含。",
+                "Auditable excerpts and fetch dates do not establish semantic entailment.",
+            ),
+            tr(
+                "本报告使用保守的抽取式写作，不做无证据的跨来源推断。",
+                "Conservative extractive writing avoids unsupported cross-source inference.",
+            ),
             "",
-            "## 开放问题",
-            "证据是否充分支持主题、资料是否过期、是否存在反例，均需要人工复核。",
+            tr("## 开放问题", "## Open questions"),
+            tr(
+                "证据是否充分支持主题、资料是否过期、是否存在反例，均需要人工复核。",
+                "Humans should review topic support, staleness and possible counterexamples.",
+            ),
         ]
         if run.reasons:
-            lines += ["", "## 未完成事项"] + [f"- {safe_text(r)}" for r in run.reasons]
-        lines += ["", "## 参考文献"]
+            lines += ["", tr("## 未完成事项", "## Incomplete work")] + [
+                f"- {safe_text(r)}" for r in run.reasons
+            ]
+        if run.config.get("auxiliary_analysis"):
+            lines += [
+                "",
+                tr("## 自动辅助分析（待人工核验）", "## Auxiliary analysis (unverified)"),
+                tr(
+                    "以下模型输出不属于已校验主张，不视为已验证结论。",
+                    "Model output below is outside verified claims and requires human review.",
+                ),
+                safe_text(run.config["auxiliary_analysis"]),
+            ]
+        lines += ["", tr("## 参考文献", "## References")]
         for c in run.claims:
             s = next(s for s in run.sources if s.id == c.source_id)
             lines += [reference_line(c.citation_id, s)]
