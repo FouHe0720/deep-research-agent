@@ -3,11 +3,18 @@ import re
 
 from markdown_it import MarkdownIt
 
-from researchos.domain.models import Claim, Run
+from researchos.domain.models import Claim, Run, SourceRecord
 
 
 def safe_text(value: str) -> str:
     return re.sub(r"([\\`*_{}\[\]<>|#!])", r"\\\1", value.replace("\n", " "))
+
+
+def reference_line(citation_id: int, source: SourceRecord) -> str:
+    return (
+        f"[{citation_id}]: {safe_text(source.title)} — <{source.url}> "
+        f"（采集 {source.fetched_at}；发表 {source.published_at or '未知'}）"
+    )
 
 
 class Writer:
@@ -67,19 +74,23 @@ class Writer:
         lines += ["", "## 参考文献"]
         for c in run.claims:
             s = next(s for s in run.sources if s.id == c.source_id)
-            # Reference definitions are audit-friendly, not Markdown footnote extensions.
-            lines += [
-                f"[{c.citation_id}]: {safe_text(s.title)} — <{s.url}> "
-                f"（采集 {s.fetched_at}；发表 {s.published_at or '未知'}）"
-            ]
-        return "\n\n".join(lines) + "\n"
+            lines += [reference_line(c.citation_id, s)]
+        # Keep table rows adjacent; surrounding prose uses paragraph breaks.
+        report = "\n\n".join(lines) + "\n"
+        return re.sub(r"(?<=\|)\n\n(?=\|)", "\n", report)
 
 
 def render_html(markdown: str) -> str:
-    body = MarkdownIt("commonmark", {"html": False}).render(markdown)
-    # Both external and fixture citations resolve to matching reference anchors offline.
-    body = re.sub(r"\[(\d+)\]:", r'<span id="ref-\1">[\1]</span>:', body)
-    body = re.sub(r"(?<![\w\-])\[(\d+)\](?!</span>)", r'<a href="#ref-\1">[\1]</a>', body)
+    reference_ids = {int(n) for n in re.findall(r"^\[(\d+)\]:", markdown, re.MULTILINE)}
+
+    def link(match):
+        number = int(match[1])
+        return f"[{number}](#ref-{number})" if number in reference_ids else match[0]
+
+    prepared = re.sub(r"(?<!\\)\[(\d+)\](?!:)", link, markdown)
+    prepared = re.sub(r"^\[(\d+)\]:", r"Reference \1 ·", prepared, flags=re.MULTILINE)
+    body = MarkdownIt("commonmark", {"html": False}).enable("table").render(prepared)
+    body = re.sub(r"<p>Reference (\d+) ·", r'<p id="ref-\1">[\1] ·', body)
     return (
         '<!doctype html><html lang="zh"><meta charset="utf-8">'
         '<meta name="viewport" content="width=device-width,initial-scale=1">'

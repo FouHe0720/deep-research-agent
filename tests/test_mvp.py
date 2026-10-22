@@ -38,3 +38,28 @@ def test_html_does_not_execute_untrusted_instructions():
     result = render_html("<script>alert(1)</script> [danger](javascript:alert(1))")
     assert "<script>" not in result
     assert 'href="javascript:' not in result
+
+
+@pytest.mark.asyncio
+async def test_report_tables_links_and_tamper_detection(tmp_path):
+    run = await Engine(Store(tmp_path / "r.db")).execute(
+        Run(request=ResearchRequest(topic="A [42] topic"))
+    )
+    html = render_html(run.report_md)
+    assert "<table>" in html
+    assert 'href="#ref-1"' in html
+    assert 'href="#ref-42"' not in html
+    assert 'id="ref-1"' in html
+    run.report_md = run.report_md.replace(run.sources[0].url, "https://wrong.example")
+    assert not EvidenceChecker().check(run).passed
+
+
+@pytest.mark.asyncio
+async def test_invalid_date_and_subtask_binding_detected(tmp_path):
+    run = await Engine(Store(tmp_path / "r.db")).execute(
+        Run(request=ResearchRequest(topic="Agent memory"))
+    )
+    run.sources[0].published_at = "not-a-date"
+    run.sources[0].date_basis = "made up"
+    run.claims[0].subtask_id = "q99"
+    assert not EvidenceChecker().check(run).passed
