@@ -2,6 +2,7 @@ import argparse
 import asyncio
 from pathlib import Path
 
+from researchos.adapters.campus import ADMISSION_TOPIC
 from researchos.adapters.integrations import AgentOpsExporter
 from researchos.domain.models import Budget, ResearchRequest, Run
 from researchos.infra.config import Settings
@@ -12,9 +13,13 @@ from researchos.services.writer import render_html
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="ResearchOS bounded research, offline by default")
-    parser.add_argument("topic", nargs="?", default="Agent Memory 有哪些主要路线和优缺点")
+    parser.add_argument("topic", nargs="?", default=None)
     parser.add_argument("--output", default="artifacts/demo")
     parser.add_argument("--mode", choices=["offline", "live"], default="offline")
+    parser.add_argument("--corpus", choices=["teaching", "campus"], default="teaching")
+    parser.add_argument("--campus", choices=["威海", "济南", "青岛"])
+    parser.add_argument("--document-year", type=int)
+    parser.add_argument("--cohort", type=int)
     parser.add_argument(
         "--providers", nargs="+", choices=["github", "arxiv", "web"], default=["github", "arxiv"]
     )
@@ -28,8 +33,13 @@ def main() -> None:
     out.mkdir(parents=True, exist_ok=True)
     store = Store(out / "research.db")
     request = ResearchRequest(
-        topic=args.topic,
+        topic=args.topic
+        or (ADMISSION_TOPIC if args.corpus == "campus" else "Agent Memory 有哪些主要路线和优缺点"),
         mode=args.mode,
+        corpus=args.corpus,
+        campus=args.campus,
+        document_year=args.document_year,
+        cohort=args.cohort,
         providers=args.providers,
         max_sources=args.max_sources,
         language=args.language,
@@ -48,7 +58,11 @@ def main() -> None:
             AgentOpsExporter.from_events(run, store.events(run.id)), ensure_ascii=False, indent=2
         )
     )
-    label = "DEMO/OFFLINE" if args.mode == "offline" else "LIVE"
+    label = (
+        ("CAMPUS/LOCAL" if args.corpus == "campus" else "DEMO/OFFLINE")
+        if args.mode == "offline"
+        else "LIVE"
+    )
     print(f"{label} run={run.id} status={run.status} sources={len(run.sources)}")
     print(f"Citation checks: {run.checks.passed}; artifacts: {out}")
     for reason in run.reasons:

@@ -28,6 +28,10 @@ class Engine:
         if self.provider:
             return self.provider
         if run.request.mode == "offline":
+            if run.request.corpus == "campus":
+                from researchos.adapters.campus import CampusSourceProvider
+
+                return CampusSourceProvider(run.request)
             return FixtureSourceProvider()
         if not self.settings.allow_live:
             raise ValueError("Live mode disabled; set RESEARCH_ALLOW_LIVE=true explicitly")
@@ -52,6 +56,7 @@ class Engine:
         run.status = "running"
         run.config = {
             "mode": run.request.mode,
+            "corpus": run.request.corpus,
             "writer": "extractive",
             "budget": run.request.budget.model_dump(),
             "tool_calls": 0,

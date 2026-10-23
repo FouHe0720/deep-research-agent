@@ -1,5 +1,21 @@
-# Environment preflight
+# 运行环境
 
-Execution: WSL Linux; parent workspace confirmed outside Git. Python 3.12.3; Git 2.43.0; GitHub CLI 2.45.0; Docker CLI 29.8.2; Node 24.21.0. GitHub CLI active account matched requested owner. No system package installation needed. Docker daemon/build and remote CI are verified separately at delivery. No sibling repository is modified.
+核心应用需要Python 3.11+、uv和SQLite FTS5。依赖通过仓库锁文件安装：
 
-V0 verification: offline demo produced six fixture sources and valid citation bindings; 3 tests passed before the V0 commit. V1 actual network smoke: unauthenticated GitHub repository search through SafeHTTP returned HTTP 200 and one public repository result, with exactly one outbound request. This does not establish arXiv, Brave or LLM availability. The uv-managed project interpreter is Python 3.12.15; the initial system interpreter was 3.12.3.
+```bash
+uv sync --extra dev --extra mcp --frozen
+```
+
+本地回归使用Linux / WSL和Python 3.12.15。CI配置包含Python 3.11、3.12，以及独立Docker构建与健康检查。具体运行记录见 [VALIDATION](VALIDATION.md)。
+
+网页由FastAPI直接提供，不需要Node构建。`node --check src/researchos/static/app.js` 是可选的JavaScript语法检查。
+
+浏览器回归另需Playwright、Chromium及对应系统库；截图包含中文时需要可用中文字体：
+
+```bash
+uv sync --extra dev --extra mcp --extra browser --frozen
+uv run playwright install chromium
+.venv/bin/python scripts/browser_smoke.py http://127.0.0.1:8000
+```
+
+离线校园和教学资料均不需要API Key、GPU或模型下载。联网搜索和可选模型的配置见 [INTEGRATION](INTEGRATION.md)。

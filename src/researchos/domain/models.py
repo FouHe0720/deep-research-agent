@@ -34,6 +34,10 @@ class ResearchRequest(Contract):
     budget: Budget = Field(default_factory=Budget)
     language: Literal["zh", "en"] = "zh"
     mode: Literal["offline", "live"] = "offline"
+    corpus: Literal["teaching", "campus"] = "teaching"
+    campus: Literal["威海", "济南", "青岛"] | None = None
+    document_year: int | None = Field(None, ge=1900, le=2100)
+    cohort: int | None = Field(None, ge=1900, le=2100)
     providers: list[Literal["github", "arxiv", "web"]] = Field(
         default_factory=lambda: ["github", "arxiv"], min_length=1, max_length=3
     )
@@ -43,6 +47,8 @@ class ResearchRequest(Contract):
         self.topic = self.topic.strip()
         if len(self.topic) < 3:
             raise ValueError("topic must contain at least 3 non-whitespace characters")
+        if self.mode == "live" and self.corpus == "campus":
+            raise ValueError("campus corpus is an offline historical snapshot; use offline mode")
         if self.time_range:
             start, end = map(int, self.time_range.split("-"))
             if start > end or start < 1900 or end > 2100:
@@ -64,6 +70,17 @@ class Plan(Contract):
     strategy: str = "bounded deterministic planner"
 
 
+class DocumentOrigin(Contract):
+    dataset_id: str
+    source_path: str
+    source_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
+    excerpt_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
+    paragraph_numbers: list[int] = Field(min_length=1)
+    campus: str
+    document_year: int
+    cohort: int | None = None
+
+
 class SourceRecord(Contract):
     id: str = Field(default_factory=uid)
     url: str
@@ -72,13 +89,14 @@ class SourceRecord(Contract):
     published_at: str | None = None
     date_basis: str | None = None
     fetched_at: str = Field(default_factory=utcnow)
-    category: Literal["fixture", "paper", "github", "web"]
+    category: Literal["fixture", "paper", "github", "web", "document"]
     excerpt: str = Field(min_length=1, max_length=8000)
     content_hash: str = ""
     doi: str | None = None
     duplicate_of: str | None = None
     subtask_ids: list[str] = Field(default_factory=list)
-    provenance: Literal["fixture", "network"]
+    provenance: Literal["fixture", "network", "local"]
+    document: DocumentOrigin | None = None
 
 
 class Claim(Contract):

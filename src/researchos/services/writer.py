@@ -11,6 +11,15 @@ def safe_text(value: str) -> str:
 
 
 def reference_line(citation_id: int, source: SourceRecord) -> str:
+    if source.document:
+        document = source.document
+        return (
+            f"[{citation_id}]: {safe_text(source.title)} — <{source.url}> "
+            f"（本地历史摘录；{document.campus}；文档年度 {document.document_year}；"
+            f"适用年级 {document.cohort or '未明确'}；原文段落 "
+            f"{', '.join(map(str, document.paragraph_numbers))}；"
+            f"原文件 {safe_text(document.source_path)}）"
+        )
     return (
         f"[{citation_id}]: {safe_text(source.title)} — <{source.url}> "
         f"（采集 {source.fetched_at}；发表 {source.published_at or '未知'}）"
@@ -19,6 +28,10 @@ def reference_line(citation_id: int, source: SourceRecord) -> str:
 
 class Writer:
     def write(self, run: Run) -> str:
+        if run.request.corpus == "campus":
+            from researchos.services.campus_report import write_campus_report
+
+            return write_campus_report(run)
         run.claims = []
         english = run.request.language == "en"
 
@@ -135,12 +148,20 @@ def render_html(markdown: str) -> str:
     prepared = re.sub(r"^\[(\d+)\]:", r"Reference \1 ·", prepared, flags=re.MULTILINE)
     body = MarkdownIt("commonmark", {"html": False}).enable("table").render(prepared)
     body = re.sub(r"<p>Reference (\d+) ·", r'<p id="ref-\1">[\1] ·', body)
+    body = re.sub(
+        r"(<table>.*?</table>)",
+        r'<div class="table-scroll" tabindex="0" aria-label="对照表，可横向滚动">\1</div>',
+        body,
+        flags=re.DOTALL,
+    )
     return (
         '<!doctype html><html lang="zh"><meta charset="utf-8">'
         '<meta name="viewport" content="width=device-width,initial-scale=1">'
         "<title>ResearchOS report</title><style>body{max-width:920px;margin:40px auto;"
-        "padding:0 24px;font:16px/1.8 system-ui;color:#1e293b}table{border-collapse:collapse}"
-        "td,th{border:1px solid #cbd5e1;padding:10px}a{color:#047857}"
+        "padding:0 24px;font:16px/1.8 system-ui;color:#1e293b;overflow-wrap:anywhere}"
+        ".table-scroll{width:100%;overflow-x:auto}"
+        "table{border-collapse:collapse;min-width:640px;width:100%;font-size:14px}"
+        "td,th{border:1px solid #cbd5e1;padding:10px;vertical-align:top}a{color:#047857}"
         "</style><body>"
         + body
         + "<footer>"

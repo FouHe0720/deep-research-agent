@@ -1,3 +1,4 @@
+import hashlib
 import ipaddress
 import re
 from datetime import datetime
@@ -25,7 +26,7 @@ class EvidenceChecker:
                 errors.append(f"unbound passage: {c.id}")
             if c.subtask_id not in s.subtask_ids or c.subtask_id not in tasks:
                 errors.append(f"invalid subquestion binding: {c.id}")
-            if safe_text(c.text) not in run.report_md:
+            if re.sub(r"\s+", " ", safe_text(c.text)) not in re.sub(r"\s+", " ", run.report_md):
                 errors.append(f"claim missing from report: {c.id}")
             if s.provenance == "network":
                 parsed = urlsplit(s.url)
@@ -39,6 +40,26 @@ class EvidenceChecker:
                         errors.append(f"nonpublic network URL: {s.id}")
             if s.provenance == "fixture" and not s.url.startswith("fixture://"):
                 errors.append(f"fixture masquerades as network: {s.id}")
+            if s.provenance == "local":
+                from researchos.adapters.campus import manifest, source_from_document
+
+                document = next((d for d in manifest()["documents"] if d["id"] == s.id), None)
+                if document is None or s.document is None:
+                    errors.append(f"unknown local document: {s.id}")
+                else:
+                    try:
+                        expected = source_from_document(document, c.subtask_id)
+                        content_hash = hashlib.sha256(s.excerpt.strip().encode()).hexdigest()
+                        if (
+                            any(
+                                getattr(s, field) != getattr(expected, field)
+                                for field in ("url", "title", "excerpt", "document")
+                            )
+                            or s.content_hash != content_hash
+                        ):
+                            errors.append(f"local source provenance mismatch: {s.id}")
+                    except ValueError:
+                        errors.append(f"local excerpt checksum mismatch: {s.id}")
             if s.published_at:
                 try:
                     datetime.fromisoformat(s.published_at.replace("Z", "+00:00"))
@@ -57,11 +78,27 @@ class EvidenceChecker:
         refs = [int(n) for n in re.findall(r"^\[(\d+)\]:", run.report_md, re.MULTILINE)]
         if sorted(refs) != sorted(ids):
             errors.append("reference numbering mismatch")
+        if run.request.corpus == "campus":
+            from researchos.adapters.campus import research_kind
+            from researchos.services.campus_report import comparison_table
+
+            try:
+                expected_table = comparison_table(
+                    run.sources, research_kind(run.request.topic) == "curriculum"
+                )
+                if expected_table not in run.report_md:
+                    errors.append("campus comparison table does not match bound source quotes")
+            except (ValueError, StopIteration, AttributeError):
+                errors.append("campus comparison has invalid local source evidence")
         return CheckResult(
             passed=not errors,
             errors=errors,
             warnings=[
                 "Structure only; source reachability and semantic faithfulness are separate.",
-                "Fixture evidence is owned demo material, never live source validity.",
-            ],
+            ]
+            + (
+                ["Local excerpts checked against packaged corpus, not original DOCX in this run."]
+                if run.request.corpus == "campus"
+                else ["Fixture evidence is owned demo material, never live source validity."]
+            ),
         )

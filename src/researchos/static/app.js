@@ -5,7 +5,7 @@
   const terminal = new Set(["completed", "partial", "failed", "cancelled"]);
   const statusNames = {queued: "等待中", running: "研究中", completed: "已完成", partial: "部分完成", failed: "执行失败", cancelled: "已停止"};
   const taskNames = {pending: "等待中", searching: "检索中", complete: "已完成", missing: "缺少证据"};
-  const categoryNames = {fixture: "教学资料", paper: "论文", github: "GitHub", web: "网页"};
+  const categoryNames = {fixture: "教学资料", paper: "论文", github: "GitHub", web: "网页", document: "本地文档"};
   const state = {run: null, history: [], events: new Map(), config: {allow_live: false, auth_required: false}, key: "", selection: 0, poll: null, stream: null, streamRetry: null, reportVersion: "", submitting: false};
 
   function element(tag, className, text) {
@@ -83,7 +83,7 @@
       state.config = await json("/api/config");
       const liveOption = $("mode").querySelector('option[value="live"]');
       liveOption.disabled = !state.config.allow_live;
-      liveOption.textContent = state.config.allow_live ? "LIVE / 真实联网" : "LIVE / 服务端未启用";
+      liveOption.textContent = state.config.allow_live ? "联网检索" : "联网检索 · 未启用";
       if (!state.config.allow_live && $("mode").value === "live") $("mode").value = "offline";
       $("connection-status").textContent = state.config.auth_required ? "API 认证已启用" : "本地服务已连接";
       if (state.config.auth_required && !state.key) {
@@ -151,9 +151,9 @@
     $("welcome").hidden = false;
     $("run-workspace").hidden = true;
     $("run-actions").hidden = true;
-    $("page-eyebrow").textContent = "YOUR RESEARCH WORKSPACE";
+    $("page-eyebrow").textContent = "DOCUMENT RESEARCH";
     $("page-title").replaceChildren(document.createTextNode("研究工作台"), element("span", "heading-period", "."));
-    $("page-subtitle").textContent = "提出问题，追溯来源，让每个结论都有据可查。";
+    $("page-subtitle").textContent = "对照招生简章与培养方案，保留年级、版本和原文位置。";
     $("breadcrumb-page").textContent = "新建研究";
     document.title = "ResearchOS · 研究工作台";
     setNotice("");
@@ -286,10 +286,10 @@
     if (!run) return;
     $("page-eyebrow").textContent = "RESEARCH WORKSPACE";
     $("page-title").textContent = run.request.topic;
-    $("page-subtitle").textContent = `${run.request.depth === "deep" ? "深入研究" : run.request.depth === "quick" ? "快速概览" : "标准研究"} · ${run.request.time_range || "时间范围不限"} · 最多 ${run.request.max_sources} 个来源`;
+    $("page-subtitle").textContent = run.request.corpus === "campus" ? `资料对照 · ${run.request.campus || "按题目匹配校区"} · ${run.request.document_year ? `${run.request.document_year}年文档` : "已收录历史版本"} · 最多 ${run.request.max_sources} 个来源` : `${run.request.depth === "deep" ? "深入研究" : run.request.depth === "quick" ? "快速概览" : "标准研究"} · ${run.request.time_range || "时间范围不限"} · 最多 ${run.request.max_sources} 个来源`;
     $("breadcrumb-page").textContent = "研究详情";
     document.title = `${run.request.topic.slice(0, 40)} · ResearchOS`;
-    $("run-mode").textContent = run.request.mode === "live" ? "LIVE / 真实联网" : "DEMO / OFFLINE";
+    $("run-mode").textContent = run.request.mode === "live" ? "LIVE / 真实联网" : run.request.corpus === "campus" ? "本地历史资料" : "DEMO / OFFLINE";
     $("run-mode").className = `badge ${run.request.mode === "live" ? "badge-live" : "badge-offline"}`;
     $("cancel-run").hidden = terminal.has(run.status);
     $("cancel-run").disabled = false;
@@ -309,7 +309,7 @@
     $("download-md").disabled = !hasReport;
     $("download-html").disabled = !hasReport;
     $("report-empty").hidden = hasReport;
-    $("report-hint").textContent = run.request.mode === "offline" ? "DEMO / OFFLINE：固定教学资料，非实时互联网调研。" : "LIVE：结论仅限已采集证据支持的范围。";
+    $("report-hint").textContent = run.request.corpus === "campus" ? "山东大学（威海）历史资料。文档版号与适用年级分别记录；引用可查看原文位置。" : run.request.mode === "offline" ? "DEMO / OFFLINE：固定教学资料，非实时互联网调研。" : "LIVE：结论仅限已采集证据支持的范围。";
     if (hasReport && state.reportVersion !== run.report_md) loadReport(run);
     if (!hasReport && terminal.has(run.status)) {
       $("report-empty").querySelector("h3").textContent = "本次研究未生成报告";
@@ -352,8 +352,9 @@
     top.append(element("span", "source-item-title", source.title), element("span", "source-type", categoryNames[source.category] || source.category));
     const meta = element("div", "source-item-meta");
     const citations = claims.filter((claim) => claim.source_id === source.id).map((claim) => `[${claim.citation_id}]`).join(" ");
-    meta.append(element("span", "source-citation", citations || "已保存来源"), element("span", "", `${source.provenance === "fixture" ? "DEMO" : "NETWORK"} · ${formatDate(source.fetched_at, true)}`));
-    button.append(top, element("span", "source-item-excerpt", source.excerpt), meta);
+    meta.append(element("span", "source-citation", citations || "已保存来源"), element("span", "", `${source.provenance === "local" ? "本地历史资料" : source.provenance === "fixture" ? "DEMO" : "NETWORK"} · ${formatDate(source.fetched_at, true)}`));
+    const relevant = source.document ? source.excerpt.split("\n").filter((line) => /招生计划人数|面向|173学分|179学分|弹性修业年限/.test(line)).slice(0, 2).join("\n") : "";
+    button.append(top, element("span", "source-item-excerpt", relevant || source.excerpt), meta);
     button.addEventListener("click", () => showSource(source));
     return button;
   }
@@ -380,7 +381,7 @@
     const fragment = document.createDocumentFragment();
     fragment.append(element("p", `check-result-title${checks.passed ? "" : " failed"}`, checks.passed ? "结构核验通过" : "引用需要复核"));
     if (checks.passed) {
-      for (const text of ["来源与 supporting passage 绑定", "引用编号与参考文献一致", "来源类型与时间信息检查"]) {
+      for (const text of ["来源与原文摘录绑定", "引用编号与参考文献一致", "来源类型与时间信息检查"]) {
         const row = element("div", "check-line");
         row.append(element("span", "", "✓"), element("span", "", text));
         fragment.append(row);
@@ -402,8 +403,8 @@
       ["来源 / 证据绑定", `${run.sources?.length || 0} / ${run.claims?.length || 0}`],
       ["工具调用", `${run.config?.tool_calls ?? 0} / ${run.request.budget.max_tool_calls}`],
       ["研究轮次", `${run.config?.rounds ?? 0} / ${run.request.budget.max_rounds}`],
-      ["LLM Tokens", tokens == null ? "null · 未记录" : typeof tokens === "object" ? JSON.stringify(tokens) : String(tokens)],
-      ["LLM 费用", cost == null ? "null · 未记录" : `$${Number(cost).toFixed(5)}`],
+      ["LLM Tokens", tokens == null ? (run.request.mode === "offline" ? "未调用" : "未记录") : typeof tokens === "object" ? JSON.stringify(tokens) : String(tokens)],
+      ["LLM 费用", cost == null ? (run.request.mode === "offline" ? "未调用" : "未记录") : `$${Number(cost).toFixed(5)}`],
     ];
     $("usage-list").replaceChildren(...rows.map(([label, value]) => {
       const row = element("div");
@@ -474,8 +475,9 @@
       body.append(anchor);
     } else body.append(element("p", "source-url mono", source.url));
     const facts = element("dl", "source-facts");
-    const data = [["来源类型", `${categoryNames[source.category] || source.category} / ${source.provenance === "fixture" ? "DEMO · 教学资料" : "NETWORK"}`], ["采集时间", formatDate(source.fetched_at)], ["发表时间", source.published_at ? formatDate(source.published_at) : "未知 · 不推定为时间范围内证据"], ["日期依据", source.date_basis || "未提供"], ["关联子问题", (source.subtask_ids || []).join("、") || "—"], ["作者 / 维护者", (source.authors || []).join("、") || "未提供"]];
+    const data = [["来源类型", `${categoryNames[source.category] || source.category} / ${source.provenance === "local" ? "本地历史资料" : source.provenance === "fixture" ? "DEMO · 教学资料" : "NETWORK"}`], ["采集时间", formatDate(source.fetched_at)], ["发表时间", source.published_at ? formatDate(source.published_at) : "未知 · 不推定为时间范围内证据"], ["日期依据", source.date_basis || "未提供"], ["关联子问题", (source.subtask_ids || []).join("、") || "—"], ["作者 / 维护者", (source.authors || []).join("、") || "未提供"]];
     if (source.doi) data.push(["DOI", source.doi]);
+    if (source.document) data.push(["原文件", source.document.source_path], ["校区 / 文档年度", `${source.document.campus} / ${source.document.document_year}`], ["明确适用年级", source.document.cohort ? `${source.document.cohort}级` : "原文未明确；版号不作为年级依据"], ["原文段落", source.document.paragraph_numbers.join("、")], ["源文件 SHA-256", source.document.source_sha256]);
     for (const [label, value] of data) {
       const row = element("div");
       row.append(element("dt", "", label), element("dd", "", value));
@@ -491,7 +493,7 @@
         body.append(item);
       }
     }
-    body.append(element("p", "source-hash mono", `SOURCE ${source.id}\nSHA-256 ${source.content_hash || "未记录"}`), element("p", "source-dialog-note", source.provenance === "fixture" ? "这是项目自有的固定教学资料，用于离线回归和流程演示。fixture:// 地址不会访问互联网。" : "保存的摘录与采集时间属于此次研究快照。外部页面内容可能在之后发生变化。"));
+    body.append(element("p", "source-hash mono", `SOURCE ${source.id}\nSHA-256 ${source.content_hash || "未记录"}`), element("p", "source-dialog-note", source.provenance === "local" ? "摘录来自本地 RAG 知识库中的历史文档，段落号包含 DOCX 空段和表格段。源文件哈希用于持有原库时核对；本次只校验打包摘录。" : source.provenance === "fixture" ? "这是项目自有的固定教学资料，用于离线回归和流程演示。fixture:// 地址不会访问互联网。" : "保存的摘录与采集时间属于此次研究快照。外部页面内容可能在之后发生变化。"));
     $("source-detail").replaceChildren(body);
     if (!$("source-dialog").open) $("source-dialog").showModal();
   }
@@ -531,7 +533,17 @@
 
   function updateModeDescription() {
     const live = $("mode").value === "live";
-    $("mode-description").replaceChildren(element("span", "small-dot"), document.createTextNode(live ? "实际请求所选来源；缺失密钥、限流与失败将明确记录。" : "离线教学资料演示，无需密钥，不请求外网。"));
+    $("corpus").disabled = live;
+    const campus = !live && $("corpus").value === "campus";
+    $("campus-filters").hidden = !campus;
+    $("case-shortcuts").hidden = !campus;
+    for (const id of ["generic-depth", "generic-date", "generic-language"]) {
+      $(id).hidden = campus;
+      $(id).querySelector("input, select").disabled = campus;
+    }
+    $("corpus-note").textContent = campus ? "山东大学（威海）历史资料 · 2023—2024" : live ? "保存实际采集的来源与摘录" : "Agent Memory 教学资料 · 流程回归";
+    for (const input of $("campus-filters").querySelectorAll("input, select")) input.disabled = !campus;
+    $("mode-description").replaceChildren(element("span", "small-dot"), document.createTextNode(live ? "实际请求所选来源；缺失密钥、限流与失败将明确记录。" : campus ? "本地历史资料，无需密钥。查看原文后再判断适用范围。" : "离线教学资料演示，无需密钥，不请求外网。"));
     document.querySelectorAll('input[name="provider"]').forEach((input) => { input.disabled = !live; });
   }
 
@@ -542,14 +554,15 @@
     if (!form.reportValidity()) return;
     const topic = $("topic").value.trim();
     if (topic.length < 3) { setNotice("请输入至少 3 个非空白字符的研究主题。", "warning"); return; }
-    const range = $("time-range").value.trim();
+    const campus = $("mode").value === "offline" && $("corpus").value === "campus";
+    const range = campus ? "" : $("time-range").value.trim();
     if (range) {
       const [start, end] = range.split("-").map(Number);
       if (start < 1900 || end > 2100 || start > end) { setNotice("时间范围须为 1900–2100 内递增年份，例如 2020-2026。", "warning"); return; }
     }
     const providers = Array.from(document.querySelectorAll('input[name="provider"]:checked'), (input) => input.value);
-    if (!providers.length) { setNotice("请至少选择一个联网来源。", "warning"); return; }
-    const payload = {topic, time_range: range || null, max_sources: Number($("max-sources").value), depth: $("depth").value, language: $("language").value, mode: $("mode").value, providers, budget: {max_seconds: Number($("max-seconds").value), max_tool_calls: Number($("max-tool-calls").value), max_rounds: Number($("max-rounds").value), max_cost_usd: Number($("max-cost").value)}};
+    if ($("mode").value === "live" && !providers.length) { setNotice("请至少选择一个联网来源。", "warning"); return; }
+    const payload = {topic, corpus: campus ? "campus" : "teaching", campus: campus ? $("campus").value : null, document_year: campus && $("document-year").value ? Number($("document-year").value) : null, cohort: campus && $("cohort").value ? Number($("cohort").value) : null, time_range: range || null, max_sources: Number($("max-sources").value), depth: campus ? "standard" : $("depth").value, language: campus ? "zh" : $("language").value, mode: $("mode").value, providers: $("mode").value === "live" ? providers : ["github", "arxiv"], budget: {max_seconds: Number($("max-seconds").value), max_tool_calls: Number($("max-tool-calls").value), max_rounds: Number($("max-rounds").value), max_cost_usd: Number($("max-cost").value)}};
     state.submitting = true;
     $("submit-research").disabled = true;
     $("submit-research").textContent = "正在创建…";
@@ -685,6 +698,18 @@
     $("topic").addEventListener("input", () => { $("topic-count").textContent = `${$("topic").value.length} / 500`; });
     $("topic-count").textContent = `${$("topic").value.length} / 500`;
     $("mode").addEventListener("change", updateModeDescription);
+    $("corpus").addEventListener("change", updateModeDescription);
+    document.querySelectorAll("[data-example]").forEach((button) => button.addEventListener("click", () => {
+      $("mode").value = "offline";
+      $("corpus").value = "campus";
+      $("campus").value = "威海";
+      $("document-year").value = "2024";
+      $("cohort").value = "";
+      $("time-range").value = "";
+      $("topic").value = button.dataset.example === "curriculum" ? "比较计算机科学与技术和人工智能专业培养方案的毕业学分与修业年限" : "比较智能导航、数据科学和计算法学实验班的招生条件、名额与选拔方式";
+      $("topic").dispatchEvent(new Event("input"));
+      updateModeDescription();
+    }));
     $("cancel-run").addEventListener("click", cancelRun);
     $("download-md").addEventListener("click", () => downloadReport("md"));
     $("download-html").addEventListener("click", () => downloadReport("html"));

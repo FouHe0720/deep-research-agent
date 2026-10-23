@@ -1,5 +1,7 @@
 # 可复制演示
 
+校园资料演示从 [CAMPUS_CASE](CAMPUS_CASE.md) 开始；页面默认使用校园历史资料。下面保留通用教学与联网功能的完整操作。
+
 所有命令从仓库根目录运行，使用项目 `.venv`。默认路径不会调用付费模型或真实搜索。
 界面、报告和输出中的 **DEMO / OFFLINE** 表示自编教学资料，不能当作实时互联网研究。
 
@@ -11,7 +13,7 @@ make demo
 make serve
 ```
 
-浏览器打开 <http://127.0.0.1:8000>，主题使用“Agent Memory 有哪些主要路线和优缺点”，
+浏览器打开 <http://127.0.0.1:8000>，资料来源切到“Agent Memory · 教学资料”，主题使用“Agent Memory 有哪些主要路线和优缺点”，
 模式保持 Offline，提交后查看计划、子问题、事件、来源摘录、引用和 Trace。点击引用应能
 定位对应来源；下载 Markdown/HTML 后可以不访问外网再次阅读。
 
@@ -22,8 +24,7 @@ run.json 和 research.db。自定义主题和导出位置：
 .venv/bin/researchos 'Agent Memory 的持久化与检索' --output artifacts/memory-demo
 ```
 
-其它主题仍使用同一套 Agent Memory Fixture，适合检查流程，不能拿输出冒充对应主题的知识。
-不要把 `fixture://` 链接改成看起来真实的论文或网页地址。
+其它主题仍使用同一套Agent Memory Fixture，只用于检查程序流程；来源标识采用 `fixture://`。
 
 ## 2. 实际 HTTP + SSE + 导出
 
@@ -78,7 +79,7 @@ PY
 
 API POST 返回 HTTP 202 和完整 Run；任务标识字段是 `id`。事件流有递增 `id:`，可用
 `after` 或 `Last-Event-ID` 续读，最终状态时结束。服务返回 partial/failed/cancelled 时，
-检查 Run.reasons，不要只看 HTTP 202 就宣布研究成功。
+最终状态和未完成原因见Run.status与Run.reasons。
 
 ## 3. API 浏览、记忆和取消
 
@@ -119,7 +120,7 @@ arXiv 需要单独选择 `providers:["arxiv"]`；Brave 需要环境中的 `RESEA
 不能在缺 Key 时把固定资料标成 Web Search。实际联网记录见 [VALIDATION](VALIDATION.md)。
 
 模型调用默认关闭。若操作者自行配置 OpenAI-compatible/Gateway、明确价格并给正预算，
-在 LIVE 模式下可选辅助分析才会执行；不要为演示随意启用付费服务。完整配置及费用语义见
+在LIVE模式下执行辅助分析。完整配置及费用语义见
 [INTEGRATION](INTEGRATION.md)。
 
 ## 5. AgentOps 兼容入口
@@ -132,10 +133,9 @@ curl --fail-with-body -sS http://127.0.0.1:8000/api/agentops/research \
   --data '{"task":"Agent Memory 的检索与持久化","category":"retrieval","fixtures":{},"seed":42,"config":{"planner":true,"tool_descriptions":"improved","tool_retries":0}}'
 ```
 
-返回严格的 `{answer,trace}`，可交给项目 5 的 `ResearchAgentAdapter` 校验。
+返回严格的 `{answer,trace}`，可交给AgentOps的 `ResearchAgentAdapter` 校验。
 这里只支持内置教学资料和明确支持的配置；外部 fixtures、关闭 Planner 或不支持的工具描述
-设置会被拒绝，不会无声忽略后伪装完成消融实验。固定流程不使用随机模型，seed 仅作为
-兼容输入，不据此声称真实模型确定性。
+设置会被拒绝。固定流程不使用随机模型，seed仅作为兼容输入。
 
 ## 6. 可选只读 MCP
 
@@ -147,8 +147,8 @@ uv sync --extra dev --extra mcp --frozen
 这是 stdio MCP server，应由 MCP client 启动并连接，不能把它当成浏览器 HTTP 页面。
 它只提供 get_run、list_sources、search_memory，读取已保存的研究，不创建任务或请求外部
 服务。需先用页面/API 生成 `.runtime/` 中的 Run；CLI Demo 的 artifacts 数据库与默认
-页面数据库分开。若读取其它显式数据库，按实现支持的环境配置设置 `RESEARCH_DATA_DIR`。
-此 server 与 Workspace 兄弟项目的文件 MCP 不同，不提供任意文件读写工具。
+页面数据库分开。若读取其它数据库，设置 `RESEARCH_DATA_DIR`。
+此 server 与 Workspace的文件 MCP 不同，不提供任意文件读写工具。
 
 ## 7. 回归与公开产物
 
@@ -158,12 +158,10 @@ make test
 make eval
 ```
 
-评测题集、生成到 100 题和人工审核说明见 [eval/README](../eval/README.md)。公开样例只应
-来自实际运行并审查；截图必须来自真实 UI。最终 pytest 数、Docker、CI 和对应产物位置见
-[VALIDATION](VALIDATION.md)，不要把本说明中的预期动作当成已经通过的结果。
+评测题集、100题扩展和人工审核说明见 [eval/README](../eval/README.md)。测试、Docker与CI记录见 [VALIDATION](VALIDATION.md)。
 
 
-## 8. Docker 与浏览器验收
+## 8. Docker 与浏览器检查
 
 ```bash
 docker compose up --build -d
@@ -177,4 +175,4 @@ Compose 使用命名 volume 保存 /data，容器以非 root 运行、只读根�
 可选浏览器工具：`uv sync --extra dev --extra browser --extra mcp --frozen`，安装所需
 Playwright 浏览器后，保持服务运行，执行 `.venv/bin/python scripts/browser_smoke.py`。
 也可用 `RESEARCH_BROWSER_EXECUTABLE` 显式选择现有 Chromium。截图仅来自真实操作，
-该可选验收工具不是应用运行的依赖。
+浏览器检查工具是可选依赖。

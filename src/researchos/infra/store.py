@@ -91,4 +91,15 @@ class Store:
                 WHERE passages MATCH ? AND p.run_id=? ORDER BY rank LIMIT ?""",
                 (match, run_id, limit),
             ).fetchall()
+            # unicode61 treats long Chinese phrases as a single token. Keep
+            # FTS ranking for token matches, then support literal CJK passage
+            # lookup when it found nothing; this is not semantic retrieval.
+            if not rows and re.search(r"[\u3400-\u9fff]", query):
+                phrase = query.strip().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+                rows = db.execute(
+                    """SELECT body FROM sources WHERE run_id=? AND
+                    (json_extract(body, '$.title') LIKE ? ESCAPE '\\' OR
+                     json_extract(body, '$.excerpt') LIKE ? ESCAPE '\\') LIMIT ?""",
+                    (run_id, f"%{phrase}%", f"%{phrase}%", limit),
+                ).fetchall()
         return [SourceRecord.model_validate_json(r[0]) for r in rows]

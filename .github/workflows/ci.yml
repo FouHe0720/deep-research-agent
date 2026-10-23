@@ -16,7 +16,7 @@ jobs:
           python-version: ${{ matrix.python }}
           enable-cache: true
       - run: uv sync --extra dev --extra mcp --frozen
-      - run: make lint test demo eval
+      - run: make lint test demo campus-demo verify-campus eval
       - uses: actions/upload-artifact@v4
         with:
           name: offline-research-${{ matrix.python }}
@@ -24,6 +24,9 @@ jobs:
             artifacts/demo/*.md
             artifacts/demo/*.html
             artifacts/demo/*.json
+            artifacts/campus/*.md
+            artifacts/campus/*.html
+            artifacts/campus/*.json
             eval/results
   container:
     runs-on: ubuntu-latest
