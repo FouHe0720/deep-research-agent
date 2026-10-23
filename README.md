@@ -4,6 +4,8 @@
 
 ResearchOS 用山东大学（威海）本地 RAG 知识库中的历史材料演示这个过程：限定资料范围，按问题收集原文，生成对照表，并保留每条引用的原文件、段落号和校验值。网页可以查看任务过程、原文和报告，也能下载 Markdown / HTML。
 
+**[完整使用手册](docs/USER_GUIDE.md)**：安装与启动、所有CLI参数、网页与HTTP操作、环境配置、MCP、可选服务、项目结构及技术说明。
+
 ![本地运行的校园资料研究工作台](docs/screenshots/researchos.png)
 
 [校园案例与来源](docs/CAMPUS_CASE.md) · [运行说明](docs/DEMO.md) · [架构](docs/ARCHITECTURE.md) · [代码导览](docs/CODE_WALKTHROUGH.md) · [验证记录](docs/VALIDATION.md)
